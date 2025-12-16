@@ -38,3 +38,15 @@ def create_incident(incident: Incident):
 def list_incidents():
     cursor.execute("SELECT * FROM incidents")
     return cursor.fetchall()
+
+@app.put("/incidents/{incident_id}")
+def update_incident(incident_id: int, status: str):
+    cursor.execute("UPDATE incidents SET status=? WHERE id=?", (status, incident_id))
+    conn.commit()
+    return {"message": f"Incident {incident_id} updated to status '{status}'"}
+
+@app.delete("/incidents/{incident_id}")
+def delete_incident(incident_id: int):
+    cursor.execute("DELETE FROM incidents WHERE id=?", (incident_id,))
+    conn.commit()
+    return {"message": f"Incident {incident_id} deleted"}
