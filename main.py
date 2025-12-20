@@ -1,6 +1,7 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
 from pydantic import BaseModel, Field
-from typing import Literal
+from enum import Enum
 import sqlite3
 
 app = FastAPI()
@@ -20,10 +21,15 @@ CREATE TABLE IF NOT EXISTS incidents (
 """)
 conn.commit()
 
+class Priority(str, Enum):
+    low = "Low"
+    medium = "Medium"
+    high = "High"
+
 class Incident(BaseModel):
     title: str = Field(..., min_length=3, max_length=100)
     description: str
-    priority: Literal["Low", "Medium", "high"]
+    priority: Priority
 
 @app.get("/")
 def home():
@@ -41,6 +47,16 @@ def list_incidents():
     cursor.execute("SELECT * FROM incidents")
     rows = cursor.fetchall()
     return [dict(row) for row in rows]
+
+@app.get("/incidents/{incident_id}")
+def get_incident(incident_id: int):
+    cursor.execute("SELECT * FROM incidents WHERE id=?", (incident_id,))
+    row = cursor.fetchone()
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Incident not found")   
+    
+    return dict(row)
 
 @app.put("/incidents/{incident_id}")
 def update_incident(incident_id: int, status: str):
