@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 import sqlite3
 
 app = FastAPI()
@@ -20,9 +21,9 @@ CREATE TABLE IF NOT EXISTS incidents (
 conn.commit()
 
 class Incident(BaseModel):
-    title: str
+    title: str = Field(..., min_length=3, max_length=100)
     description: str
-    priority: str
+    priority: Literal["Low", "Medium", "high"]
 
 @app.get("/")
 def home():
