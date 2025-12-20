@@ -5,6 +5,7 @@ import sqlite3
 app = FastAPI()
 
 conn = sqlite3.connect("incidents.db", check_same_thread=False)
+conn.row_factory = sqlite3.Row
 cursor = conn.cursor()
 
 cursor.execute("""
@@ -37,7 +38,8 @@ def create_incident(incident: Incident):
 @app.get("/incidents/")
 def list_incidents():
     cursor.execute("SELECT * FROM incidents")
-    return cursor.fetchall()
+    rows = cursor.fetchall()
+    return [dict(row) for row in rows]
 
 @app.put("/incidents/{incident_id}")
 def update_incident(incident_id: int, status: str):
