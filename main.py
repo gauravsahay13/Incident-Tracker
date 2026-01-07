@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
 import sqlite3
 
 app = FastAPI()
@@ -16,7 +17,8 @@ CREATE TABLE IF NOT EXISTS incidents (
     title TEXT,
     description TEXT,
     priority TEXT,
-    status TEXT DEFAULT 'Open'
+    status TEXT DEFAULT 'Open',
+    assigned_to TEXT DEFAULT 'Unassigned'
 )
 """)
 conn.commit()
@@ -30,6 +32,7 @@ class Incident(BaseModel):
     title: str = Field(..., min_length=3, max_length=100)
     description: str
     priority: Priority
+    assigned_to: Optional[str] = None
 
 @app.get("/")
 def home():
@@ -37,8 +40,8 @@ def home():
 
 @app.post("/incidents/")
 def create_incident(incident: Incident):
-    cursor.execute("INSERT INTO incidents (title, description, priority) VALUES (?, ?, ?)",
-                   (incident.title, incident.description, incident.priority))
+    cursor.execute("INSERT INTO incidents (title, description, priority, assigned_to) VALUES (?, ?, ?, ?)",
+                   (incident.title, incident.description, incident.priority, incident.assigned_to))
     conn.commit()
     return {"message": "Incident created successfully"}
 
