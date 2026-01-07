@@ -62,10 +62,17 @@ def get_incident(incident_id: int):
 def update_incident(incident_id: int, status: str):
     cursor.execute("UPDATE incidents SET status=? WHERE id=?", (status, incident_id))
     conn.commit()
+
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Incident not found")
     return {"message": f"Incident {incident_id} updated to status '{status}'"}
 
 @app.delete("/incidents/{incident_id}")
 def delete_incident(incident_id: int):
-    cursor.execute("DELETE FROM incidents WHERE id=?", (incident_id,))
+    cursor.execute("DELETE FROM incidents WHERE id = ?", (incident_id,))
     conn.commit()
+
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
     return {"message": f"Incident {incident_id} deleted"}
